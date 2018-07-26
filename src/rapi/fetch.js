@@ -10,7 +10,7 @@ fetch.interceptors.response.use(
     if (res.status !== 200) {
       return Promise.reject(res.error)
     }
-    return Promise.resolve(res)
+    return Promise.resolve(res.data)
   },
   error => {
     console.log(error)

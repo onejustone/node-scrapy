@@ -1989,52 +1989,37 @@ var followRedirects = wrap({ http: http, https: https });
 var wrap_1 = wrap;
 followRedirects.wrap = wrap_1;
 
-var _from = "axios@0.18.0";
-var _id = "axios@0.18.0";
-var _inBundle = false;
-var _integrity = "sha1-MtU+SFHv3AoRmTts0AB4nXDAUQI=";
-var _location = "/axios";
-var _phantomChildren = {
+var name = "axios";
+var version = "0.18.0";
+var description = "Promise based HTTP client for the browser and node.js";
+var main = "index.js";
+var scripts = {
+	test: "grunt test && bundlesize",
+	start: "node ./sandbox/server.js",
+	build: "NODE_ENV=production grunt build",
+	preversion: "npm test",
+	version: "npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json",
+	postversion: "git push && git push --tags",
+	examples: "node ./examples/server.js",
+	coveralls: "cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 };
-var _requested = {
-	type: "version",
-	registry: true,
-	raw: "axios@0.18.0",
-	name: "axios",
-	escapedName: "axios",
-	rawSpec: "0.18.0",
-	saveSpec: null,
-	fetchSpec: "0.18.0"
+var repository = {
+	type: "git",
+	url: "https://github.com/axios/axios.git"
 };
-var _requiredBy = [
-	"/"
+var keywords = [
+	"xhr",
+	"http",
+	"ajax",
+	"promise",
+	"node"
 ];
-var _resolved = "https://registry.npmjs.org/axios/-/axios-0.18.0.tgz";
-var _shasum = "32d53e4851efdc0a11993b6cd000789d70c05102";
-var _spec = "axios@0.18.0";
-var _where = "/Users/chenrong/primaryGitRepo/search-sub-domain";
-var author = {
-	name: "Matt Zabriskie"
-};
-var browser$1 = {
-	"./lib/adapters/http.js": "./lib/adapters/xhr.js"
-};
+var author = "Matt Zabriskie";
+var license = "MIT";
 var bugs = {
 	url: "https://github.com/axios/axios/issues"
 };
-var bundleDependencies = false;
-var bundlesize = [
-	{
-		path: "./dist/axios.min.js",
-		threshold: "5kB"
-	}
-];
-var dependencies = {
-	"follow-redirects": "^1.3.0",
-	"is-buffer": "^1.1.5"
-};
-var deprecated = false;
-var description = "Promise based HTTP client for the browser and node.js";
+var homepage = "https://github.com/axios/axios";
 var devDependencies = {
 	bundlesize: "^0.5.7",
 	coveralls: "^2.11.9",
@@ -2066,102 +2051,61 @@ var devDependencies = {
 	"load-grunt-tasks": "^3.5.2",
 	minimist: "^1.2.0",
 	sinon: "^1.17.4",
-	typescript: "^2.0.3",
-	"url-search-params": "^0.6.1",
 	webpack: "^1.13.1",
-	"webpack-dev-server": "^1.14.1"
+	"webpack-dev-server": "^1.14.1",
+	"url-search-params": "^0.6.1",
+	typescript: "^2.0.3"
 };
-var homepage = "https://github.com/axios/axios";
-var keywords = [
-	"xhr",
-	"http",
-	"ajax",
-	"promise",
-	"node"
-];
-var license = "MIT";
-var main = "index.js";
-var name = "axios";
-var repository = {
-	type: "git",
-	url: "git+https://github.com/axios/axios.git"
-};
-var scripts = {
-	build: "NODE_ENV=production grunt build",
-	coveralls: "cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-	examples: "node ./examples/server.js",
-	postversion: "git push && git push --tags",
-	preversion: "npm test",
-	start: "node ./sandbox/server.js",
-	test: "grunt test && bundlesize",
-	version: "npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json"
+var browser$1 = {
+	"./lib/adapters/http.js": "./lib/adapters/xhr.js"
 };
 var typings = "./index.d.ts";
-var version = "0.18.0";
+var dependencies = {
+	"follow-redirects": "^1.3.0",
+	"is-buffer": "^1.1.5"
+};
+var bundlesize = [
+	{
+		path: "./dist/axios.min.js",
+		threshold: "5kB"
+	}
+];
 var _package = {
-	_from: _from,
-	_id: _id,
-	_inBundle: _inBundle,
-	_integrity: _integrity,
-	_location: _location,
-	_phantomChildren: _phantomChildren,
-	_requested: _requested,
-	_requiredBy: _requiredBy,
-	_resolved: _resolved,
-	_shasum: _shasum,
-	_spec: _spec,
-	_where: _where,
-	author: author,
-	browser: browser$1,
-	bugs: bugs,
-	bundleDependencies: bundleDependencies,
-	bundlesize: bundlesize,
-	dependencies: dependencies,
-	deprecated: deprecated,
-	description: description,
-	devDependencies: devDependencies,
-	homepage: homepage,
-	keywords: keywords,
-	license: license,
-	main: main,
 	name: name,
-	repository: repository,
+	version: version,
+	description: description,
+	main: main,
 	scripts: scripts,
+	repository: repository,
+	keywords: keywords,
+	author: author,
+	license: license,
+	bugs: bugs,
+	homepage: homepage,
+	devDependencies: devDependencies,
+	browser: browser$1,
 	typings: typings,
-	version: version
+	dependencies: dependencies,
+	bundlesize: bundlesize
 };
 
 var _package$1 = /*#__PURE__*/Object.freeze({
-  _from: _from,
-  _id: _id,
-  _inBundle: _inBundle,
-  _integrity: _integrity,
-  _location: _location,
-  _phantomChildren: _phantomChildren,
-  _requested: _requested,
-  _requiredBy: _requiredBy,
-  _resolved: _resolved,
-  _shasum: _shasum,
-  _spec: _spec,
-  _where: _where,
-  author: author,
-  browser: browser$1,
-  bugs: bugs,
-  bundleDependencies: bundleDependencies,
-  bundlesize: bundlesize,
-  dependencies: dependencies,
-  deprecated: deprecated,
-  description: description,
-  devDependencies: devDependencies,
-  homepage: homepage,
-  keywords: keywords,
-  license: license,
-  main: main,
   name: name,
-  repository: repository,
-  scripts: scripts,
-  typings: typings,
   version: version,
+  description: description,
+  main: main,
+  scripts: scripts,
+  repository: repository,
+  keywords: keywords,
+  author: author,
+  license: license,
+  bugs: bugs,
+  homepage: homepage,
+  devDependencies: devDependencies,
+  browser: browser$1,
+  typings: typings,
+  dependencies: dependencies,
+  bundlesize: bundlesize,
   default: _package
 });
 
@@ -2891,7 +2835,7 @@ fetch.interceptors.response.use(function (response) {
   if (res.status !== 200) {
     return Promise.reject(res.error);
   }
-  return Promise.resolve(res);
+  return Promise.resolve(res.data);
 }, function (error) {
   console.log(error);
   return Promise.reject(error);
@@ -18414,17 +18358,15 @@ var http$1 = {
   _delete: _delete
 };
 
+var cheerio = require('cheerio');
+
 var URI = 'http://chuxin.360jlb.cn/user?id=3618365';
 
 var result$ = http$1.get$(URI);
 
 result$.subscribe(function (data) {
-  return console.log(data);
+  // console.log(`${data}`)
+  var _ = cheerio.load(data);
+  var feedlist = _('#feedlist').innerHtml();
+  console.log(feedlist, 'feedlist');
 });
-// import Observable from 'rxjs/Observale'
-// const { of } = require('rxjs')
-// const Rx = require('rxjs/Rx')
-
-// Rx.Observable.of('abcd').subscribe(function (value) {
-//   console.log(value)
-// })
