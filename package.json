@@ -10,8 +10,11 @@
     "build": "rollup -c build/rollup.config.js"
   },
   "dependencies": {
+    "assert": "^1.4.1",
     "axios": "^0.18.0",
     "cheerio": "^1.0.0-rc.2",
+    "mongodb": "^3.1.1",
+    "mongoose": "^5.2.5",
     "path": "^0.12.7",
     "puppeteer": "^1.6.0-next.1532381444032",
     "rollup": "^0.63.4",
