@@ -1,32 +1,28 @@
-const path = require('path');
-const winston = require('winston');
-const _ = require('lodash');
+const { createLogger, format, transports, config } = require('winston')
+const { combine, timestamp, label, printf, prettyPrint, colorize } = format
 
-function createLogger(filePath) {
-  const fileName = path.basename(filePath);
+const myFormat = printf(info => {
+  return `${info.timestamp} ${info.level}: ${info.message}`
+})
 
-  const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    transports: [
-      //
-      // - Write to all logs with level `info` and below to `combined.log`
-      // - Write all logs error (and below) to `error.log`.
-      //
-      new winston.transports.File({ filename: 'error.log', level: 'error' }),
-      new winston.transports.File({ filename: 'combined.log' })
-    ]
-  })
+const logger = createLogger({
+  format: combine(
+    colorize(),
+    timestamp(),
+    myFormat
+  ),
+  levels: config.syslog.levels,
+  transports: [
+    new transports.Console(),
+    new transports.File({filename: 'error.log', level: 'error'}),
+    new transports.File({filename: 'conbined.log'})
+  ]
+})
 
-  // _setLevelForTransports('info');
-  return logger;
-}
+// if (process.env.NODE_ENV !== 'production') {
+//   logger.add(new transports.Console({
+//     format: format.simple()
+//   }))
+// }
 
-function _setLevelForTransports(logger, level) {
-  _.each(logger.transports, (transport) => {
-    // eslint-disable-next-line
-    transport.level = level;
-  });
-}
-
-module.exports = createLogger;
+module.exports = logger

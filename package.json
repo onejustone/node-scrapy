@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "dev:start": "supervisor ./dist/build.js",
-    "build": "rollup -c build/rollup.config.js"
+    "build": "rollup -c build/rollup.config.js",
+    "crawler:thal": "node src/thal/index.js"
   },
   "dependencies": {
     "assert": "^1.4.1",

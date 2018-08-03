@@ -1,0 +1,33 @@
+{"message":"成功启动","level":"info"}
+{"message":"成功启动","level":"info"}
+{"message":"启动失败了","level":"error"}
+2018-08-03T00:06:20.077Z [right meow] right meow: 成功启动
+2018-08-03T00:06:20.088Z [right meow] right meow: 启动失败了
+{ message: '成功启动',
+  level: 'info',
+  label: 'right meow',
+  timestamp: '2018-08-03T00:08:10.352Z',
+  [Symbol(level)]: 'info' }
+{ message: '启动失败了',
+  level: 'error',
+  label: 'right meow',
+  timestamp: '2018-08-03T00:08:10.357Z',
+  [Symbol(level)]: 'error' }
+{ message: '成功启动',
+  level: 'info',
+  label: 'right meow',
+  timestamp: '2018-08-03T00:09:38.347Z',
+  [Symbol(level)]: 'info' }
+{ message: '启动失败了',
+  level: 'error',
+  label: 'right meow',
+  timestamp: '2018-08-03T00:09:38.355Z',
+  [Symbol(level)]: 'error' }
+2018-08-03T00:16:04.823Z [undefined] undefined: 成功启动
+2018-08-03T00:16:04.829Z [undefined] undefined: 启动失败了
+2018-08-03T00:17:07.412Z [undefined] [32minfo[39m: 成功启动
+2018-08-03T00:17:07.423Z [undefined] [31merror[39m: 启动失败了
+2018-08-03T00:17:45.220Z [32minfo[39m: 成功启动
+2018-08-03T00:17:45.229Z [31merror[39m: 启动失败了
+2018-08-03T00:18:34.117Z [32minfo[39m: 成功启动
+2018-08-03T00:18:34.123Z [31merror[39m: 启动失败了

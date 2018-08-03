@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer')
 
 // model
 // const { MongoClient } = require('mongodb')
