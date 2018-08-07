@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
   crawledURL: String,
   targetURL: String,
-  targetName: String,
+  nickname: String,
   targetId: String,
   feedItems: Array,
   crawledDate: Date
