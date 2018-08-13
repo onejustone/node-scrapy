@@ -1,6 +1,11 @@
 const puppeteer = require('puppeteer')
 const logger = require('../../util/logger')
 
+/**
+ * getUserInfo
+ * @param { } page
+ * @return {*} { nickname, feedItems }
+ */
 async function getUserInfo(page) {
   const USER_NICKNAME_SELECTOR = '#layout-R > div.frame-right > div > div.body > div.user-info > ul > li.nickname'
   const FEED_LIST_SELECTOR = '#feedlist'
@@ -19,15 +24,16 @@ async function getUserInfo(page) {
       if (!items) return []
 
       const feedItems = Array.from(items).map(item => {
+        const activityUrl = item.querySelector('.content > a').href
         const activityName = item.querySelector('.content > a').innerText
         const activityTime = item.querySelector('.time').innerText
 
         return {
           activityName,
-          activityTime
+          activityTime,
+          activityUrl
         }
       })
-
       return { nickname, feedItems }
     },
       USER_NICKNAME_SELECTOR,
@@ -42,30 +48,43 @@ async function getUserInfo(page) {
   }
 }
 
-/**
- *
- * @param {*} TARGET_URI
- * @param {*} browserParams
- * @return {} {
-      nickname,
-      feedItems
-    }
- */
-async function launchUserCrawler(TARGET_URI, { headless = false } = {}) {
+// 创建 browser 单例
+let browserInstance = null
+async function getSingleBrowser({ headless = true } = {}) {
+  if (browserInstance) return browserInstance
+  logger.info('First lanuch singleton browser...')
+  browserInstance = await puppeteer.launch({ headless })
+  logger.info('Lanuch singleton browser successfully!')
+  return browserInstance
+}
+
+// 创建 page 单例
+// let pageInstance = null
+async function getSinglePage(browser) {
+  // if (pageInstance) return pageInstance
+  let pageInstance = null
+  logger.info('Initing singleton newPage...')
+  pageInstance = await browser.newPage()
+  logger.info('Singleton page inited successfully!')
+  await pageInstance.setViewport({ width: 800, height: 800 })
+  return pageInstance
+}
+
+async function launchUserCrawler(TARGET_URI, browserOptions) {
   let browser = null
   let page = null
 
   try {
-    browser = await puppeteer.launch({ headless })
-    page = await browser.newPage()
-
-    await page.setViewport({ width: 800, height: 800 })
+    browser = await getSingleBrowser(browserOptions)
+    page = await getSinglePage(browser)
     await page.goto(TARGET_URI)
 
     // 确保页面加载完成
     await page.waitFor(1 * 1000)
-
-    return await getUserInfo(page)
+    // 获取 user info
+    const userInfo = await getUserInfo(page)
+    await page.close()
+    return userInfo
   } catch (error) {
     logger.error(error)
     throw Error(error)

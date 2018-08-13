@@ -8,6 +8,8 @@ test/e2e/reports
 selenium-debug.log
 creds.js
 
+src/mail/credit.js
+
 # Editor directories and files
 .idea
 .vscode

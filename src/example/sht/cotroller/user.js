@@ -3,10 +3,13 @@ const mongoose = require('mongoose')
 const dbConfig = require('../config/db.config')
 const User = require('../models/user')
 
+let dbInstance = null
 async function connectDB() {
   try {
+    if (dbInstance) return
     mongoose.connect(dbConfig.DB_URI, { useNewUrlParser: true })
-    await mongoose.connection
+    dbInstance = await mongoose.connection
+    return dbInstance
     logger.info('Connected successfully!')
   } catch (error) {
     logger.error('Connect db error')
@@ -17,11 +20,13 @@ async function connectDB() {
 async function insertUserInfo(user) {
   try {
     await connectDB()
-    await User.findOneAndUpdate({ targetURL: user.targetURL }, user, { upsert: true })
-    logger.info('insertUserInfo', user)
+    logger.info(user, 'insertUserInfo')
+    const newUser = await User.findOneAndUpdate({ targetURL: user.targetURL }, user, { upsert: true, new: true })
+    logger.info('insertUserInfo', newUser)
+    return newUser
   } catch (error) {
-    logger.error(`Error insertUserInfo: ${error}`)
-    throw Error(`Error insertUserInfo:', ${error}`)
+    logger.error(`Error insertUserInfo at controller js: ${error}`)
+    throw Error(`Error insertUserInfo at controller js:', ${error}`)
   }
 }
 
