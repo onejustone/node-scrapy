@@ -20,7 +20,7 @@ async function start(target) {
       logger.info('Start Get user info...')
       userInfo = await launchUserCrawler(
         target.TARGET_URI,
-        { headless: false }/* { nickname, feedItems}*/
+        { headless: true }/* { nickname, feedItems}*/
       )
       logger.info('Get user info successfully!', userInfo)
     } catch (error) {

@@ -53,7 +53,7 @@ let browserInstance = null
 async function getSingleBrowser({ headless = true } = {}) {
   if (browserInstance) return browserInstance
   logger.info('First lanuch singleton browser...')
-  browserInstance = await puppeteer.launch({ headless })
+  browserInstance = await puppeteer.launch({ headless , args: ['--no-sandbox', '--disable-setuid-sandbox']})
   logger.info('Lanuch singleton browser successfully!')
   return browserInstance
 }
