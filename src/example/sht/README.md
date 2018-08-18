@@ -16,4 +16,17 @@
 ## reference
 
 * Kali Linux
-*
+
+## 部署到腾讯云
+
+在`centos7`中无法启动`chrome`问题：
+
+```bash
+curl https://intoli.com/install-google-chrome.sh | bash
+```
+
+[Headless Chromium with Puppeteer doesn't work on Amazon Linux AMI](https://github.com/GoogleChrome/puppeteer/issues/765)
+
+## 部署
+
+[线上node服务的配置和维护](https://cnodejs.org/topic/57216ea1fa48138c41110ec8)
