@@ -8,10 +8,6 @@ const { connectDB, insertUserInfo } = require('./cotroller/user')
 
 const sendMail = require('./mail')
 
-// const CRAWLED_URL = `http://chuxin.360jlb.cn`
-// const TARGET_ID = '3618365'
-// const TARGET_URI = `${CRAWLED_URL}/user?id=${TARGET_ID}`
-
 async function start(target) {
     let userInfo = {}
 
