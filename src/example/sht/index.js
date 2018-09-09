@@ -1,5 +1,6 @@
 const logger = require('../../util/logger')
 const User = require('./models/user')
+const schedule = require('./schdules/index')
 
 const launchUserCrawler = require('./crawler')
 const { generateTargetUrls } = require('./targetUrls')
@@ -8,7 +9,7 @@ const { connectDB, insertUserInfo } = require('./cotroller/user')
 
 const sendMail = require('./mail')
 
-async function start(target) {
+async function startUserCrawler(target) {
     let userInfo = {}
 
     try {
@@ -46,14 +47,14 @@ async function start(target) {
         // 如果目标有新的活动更新
         if (oldUser.feedItems.length === userInfo.feedItems.length) {
           logger.info('目标目前没有任何动态更新！')
+          // await sendMail(userInfo)
           return
         }
+        // 更新目标信息
+        await insertUserInfo(userInfo)
 
         // 发送邮件通知
         await sendMail(userInfo)
-
-        // 更新目标信息
-        await insertUserInfo(userInfo)
       }
 
     } catch (error) {
@@ -62,15 +63,17 @@ async function start(target) {
     }
 }
 
-function autoUpdate() {
-  const targetList = generateTargetUrls()
 
-  let timer = null
-  timer = setInterval(async () => {
-   for (target of targetList) {
-      await start(target)
-    }
-  }, 10000)
+async function batchCreaweler (targetList) {
+  for (target of targetList) {
+    await startUserCrawler(target)
+  }
 }
 
-autoUpdate()
+function launchCreawel() {
+  const targetList = generateTargetUrls()
+  batchCreaweler(targetList)
+}
+
+schedule(launchCreawel)
+

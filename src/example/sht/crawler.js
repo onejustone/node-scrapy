@@ -24,9 +24,9 @@ async function getUserInfo(page) {
       if (!items) return []
 
       const feedItems = Array.from(items).map(item => {
-        const activityUrl = item.querySelector('.content > a').href
-        const activityName = item.querySelector('.content > a').innerText
-        const activityTime = item.querySelector('.time').innerText
+        const activityUrl = item.querySelector('.content > a').href || ''
+        const activityName = item.querySelector('.content > a').innerText || ''
+        const activityTime = item.querySelector('.time').innerText || ''
 
         return {
           activityName,

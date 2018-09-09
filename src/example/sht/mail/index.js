@@ -33,6 +33,11 @@ const logger = require('../../../util/logger')
 
 async function sendMail(userInfo) {
   const latestFeed = userInfo.feedItems[0]
+  if (!latestFeed) {
+    logger.info('目标信息不存在，取消短信发送')
+    return
+  }
+
   const subject = `您关注的${userInfo.nickname}发布了的动态`
   const html = `
     <b>时间：${latestFeed.activityTime}</b></br>
