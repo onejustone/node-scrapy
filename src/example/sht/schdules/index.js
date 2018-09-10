@@ -13,7 +13,10 @@
 const schedule = require('node-schedule')
 
 const rules = [
-  { scheduleId: '1', text: '每天22:30', rule: { minute: 5, hour: 20 } },
+  { scheduleId: '0', text: '每天08:30', rule: { minute: 30, hour: 8 } },
+  { scheduleId: '0', text: '每天10:30', rule: { hour: 10 } },
+  { scheduleId: '0', text: '每天18:30', rule: { minute: 30, hour: 18 } },
+  { scheduleId: '1', text: '每天22:30', rule: { minute: 30, hour: 22 } },
   { scheduleId: '2', text: '星期五下午18：30', rule: { minute: 30, hour: 18, dayOfWeek: 5 } },
   { scheduleId: '3', text: '星期五下午20：30', rule: { minute: 30, hour: 20, dayOfWeek: 5 } },
   { scheduleId: '4', text: '星期五下午23：00', rule: { hour: 23, dayOfWeek: 5 } },
