@@ -13,7 +13,7 @@ fetch.interceptors.response.use(
     return Promise.resolve(res.data)
   },
   error => {
-    console.log(error)
+    console.log('ma de cuo lw')
     return Promise.reject(error)
   })
 

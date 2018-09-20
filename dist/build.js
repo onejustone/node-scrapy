@@ -30,7 +30,7 @@ var bind = function bind(fn, thisArg) {
 
 // The _isBuffer check is for Safari 5-7 support, because it's missing
 // Object.prototype.constructor. Remove this eventually
-var isBuffer_1 = function (obj) {
+var _isBuffer_1_1_6_isBuffer = function (obj) {
   return obj != null && (isBuffer(obj) || isSlowBuffer(obj) || !!obj._isBuffer)
 };
 
@@ -322,7 +322,7 @@ function extend(a, b, thisArg) {
 var utils = {
   isArray: isArray,
   isArrayBuffer: isArrayBuffer,
-  isBuffer: isBuffer_1,
+  isBuffer: _isBuffer_1_1_6_isBuffer,
   isFormData: isFormData,
   isArrayBufferView: isArrayBufferView,
   isString: isString,
@@ -877,7 +877,7 @@ var y = d * 365.25;
  * @api public
  */
 
-var ms = function(val, options) {
+var _ms_2_0_0_ms = function(val, options) {
   options = options || {};
   var type = typeof val;
   if (type === 'string' && val.length > 0) {
@@ -1019,7 +1019,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = ms;
+exports.humanize = _ms_2_0_0_ms;
 
 /**
  * Active `debug` instances.
@@ -1079,8 +1079,8 @@ function createDebug(namespace) {
 
     // set `diff` timestamp
     var curr = +new Date();
-    var ms$$1 = curr - (prevTime || curr);
-    self.diff = ms$$1;
+    var ms = curr - (prevTime || curr);
+    self.diff = ms;
     self.prev = prevTime;
     self.curr = curr;
     prevTime = curr;
@@ -1456,7 +1456,7 @@ var hasFlag = function (flag) {
 	return pos !== -1 && (terminator !== -1 ? pos < terminator : true);
 };
 
-var supportsColor = (function () {
+var _supportsColor_2_0_0_supportsColor = (function () {
 	if ('FORCE_COLOR' in process.env) {
 		return true;
 	}
@@ -1526,8 +1526,8 @@ exports.useColors = useColors;
 exports.colors = [ 6, 2, 3, 4, 5, 1 ];
 
 try {
-  var supportsColor$$1 = supportsColor;
-  if (supportsColor$$1 && supportsColor$$1.level >= 2) {
+  var supportsColor = _supportsColor_2_0_0_supportsColor;
+  if (supportsColor && supportsColor.level >= 2) {
     exports.colors = [
       20, 21, 26, 27, 32, 33, 38, 39, 40, 41, 42, 43, 44, 45, 56, 57, 62, 63, 68,
       69, 74, 75, 76, 77, 78, 79, 80, 81, 92, 93, 98, 99, 112, 113, 128, 129, 134,
@@ -1763,14 +1763,30 @@ RedirectableRequest.prototype = Object.create(Writable.prototype);
 
 // Writes buffered data to the current native request
 RedirectableRequest.prototype.write = function (data, encoding, callback) {
+  // Validate input and shift parameters if necessary
   if (!(typeof data === "string" || typeof data === "object" && ("length" in data))) {
     throw new Error("data should be a string, Buffer or Uint8Array");
   }
+  if (typeof encoding === "function") {
+    callback = encoding;
+    encoding = null;
+  }
+
+  // Ignore empty buffers, since writing them doesn't invoke the callback
+  // https://github.com/nodejs/node/issues/22066
+  if (data.length === 0) {
+    if (callback) {
+      callback();
+    }
+    return;
+  }
+  // Only write when we don't exceed the maximum body length
   if (this._requestBodyLength + data.length <= this._options.maxBodyLength) {
     this._requestBodyLength += data.length;
     this._requestBodyBuffers.push({ data: data, encoding: encoding });
     this._currentRequest.write(data, encoding, callback);
   }
+  // Error when we exceed the maximum body length
   else {
     this.emit("error", new Error("Request body larger than maxBodyLength limit"));
     this.abort();
@@ -1779,15 +1795,21 @@ RedirectableRequest.prototype.write = function (data, encoding, callback) {
 
 // Ends the current native request
 RedirectableRequest.prototype.end = function (data, encoding, callback) {
+  // Shift parameters if necessary
+  if (typeof data === "function") {
+    callback = data;
+    data = encoding = null;
+  }
+  else if (typeof encoding === "function") {
+    callback = encoding;
+    encoding = null;
+  }
+
+  // Write data and end
   var currentRequest = this._currentRequest;
-  if (!data) {
+  this.write(data || "", encoding, function () {
     currentRequest.end(null, null, callback);
-  }
-  else {
-    this.write(data, encoding, function () {
-      currentRequest.end(null, null, callback);
-    });
-  }
+  });
 };
 
 // Sets a header value on the current native request
@@ -1824,6 +1846,10 @@ RedirectableRequest.prototype._performRequest = function () {
   // Load the native protocol
   var protocol = this._options.protocol;
   var nativeProtocol = this._options.nativeProtocols[protocol];
+  if (!nativeProtocol) {
+    this.emit("error", new Error("Unsupported protocol " + protocol));
+    return;
+  }
 
   // If specified, use the agent corresponding to the protocol
   // (HTTP and HTTPS use different types of agents)
@@ -1850,10 +1876,11 @@ RedirectableRequest.prototype._performRequest = function () {
   // (The first request must be ended explicitly with RedirectableRequest#end)
   if (this._isRedirect) {
     // Write the request entity and end.
-    var requestBodyBuffers = this._requestBodyBuffers;
+    var i = 0;
+    var buffers = this._requestBodyBuffers;
     (function writeNext() {
-      if (requestBodyBuffers.length !== 0) {
-        var buffer = requestBodyBuffers.pop();
+      if (i < buffers.length) {
+        var buffer = buffers[i++];
         request.write(buffer.data, buffer.encoding, writeNext);
       }
       else {
@@ -1985,9 +2012,9 @@ function wrap(protocols) {
 }
 
 // Exports
-var followRedirects = wrap({ http: http, https: https });
+var _followRedirects_1_5_7_followRedirects = wrap({ http: http, https: https });
 var wrap_1 = wrap;
-followRedirects.wrap = wrap_1;
+_followRedirects_1_5_7_followRedirects.wrap = wrap_1;
 
 var name = "axios";
 var version = "0.18.0";
@@ -2070,6 +2097,8 @@ var bundlesize = [
 		threshold: "5kB"
 	}
 ];
+var _from = "axios@0.18.0";
+var _resolved = "http://registry.npmjs.org/axios/-/axios-0.18.0.tgz";
 var _package = {
 	name: name,
 	version: version,
@@ -2086,7 +2115,9 @@ var _package = {
 	browser: browser$1,
 	typings: typings,
 	dependencies: dependencies,
-	bundlesize: bundlesize
+	bundlesize: bundlesize,
+	_from: _from,
+	_resolved: _resolved
 };
 
 var _package$1 = /*#__PURE__*/Object.freeze({
@@ -2106,13 +2137,15 @@ var _package$1 = /*#__PURE__*/Object.freeze({
   typings: typings,
   dependencies: dependencies,
   bundlesize: bundlesize,
+  _from: _from,
+  _resolved: _resolved,
   default: _package
 });
 
 var pkg = ( _package$1 && _package ) || _package$1;
 
-var httpFollow = followRedirects.http;
-var httpsFollow = followRedirects.https;
+var httpFollow = _followRedirects_1_5_7_followRedirects.http;
+var httpsFollow = _followRedirects_1_5_7_followRedirects.https;
 
 
 
@@ -2824,9 +2857,9 @@ var axios_1 = axios;
 var default_1 = axios;
 axios_1.default = default_1;
 
-var axios$1 = axios_1;
+var _axios_0_18_0_axios = axios_1;
 
-var fetch = axios$1.create({
+var fetch = _axios_0_18_0_axios.create({
   timeout: 30000
 });
 
@@ -2837,7 +2870,7 @@ fetch.interceptors.response.use(function (response) {
   }
   return Promise.resolve(res.data);
 }, function (error) {
-  console.log(error);
+  console.log('ma de cuo lw');
   return Promise.reject(error);
 });
 
@@ -2952,19 +2985,17 @@ function tryCatch(fn) {
     return tryCatcher;
 }
 
-/** PURE_IMPORTS_START tslib PURE_IMPORTS_END */
-var UnsubscriptionError = /*@__PURE__*/ (function (_super) {
-    __extends(UnsubscriptionError, _super);
-    function UnsubscriptionError(errors) {
-        var _this = _super.call(this, errors ?
-            errors.length + " errors occurred during unsubscription:\n  " + errors.map(function (err, i) { return i + 1 + ") " + err.toString(); }).join('\n  ') : '') || this;
-        _this.errors = errors;
-        _this.name = 'UnsubscriptionError';
-        Object.setPrototypeOf(_this, UnsubscriptionError.prototype);
-        return _this;
-    }
-    return UnsubscriptionError;
-}(Error));
+/** PURE_IMPORTS_START  PURE_IMPORTS_END */
+function UnsubscriptionErrorImpl(errors) {
+    Error.call(this);
+    this.message = errors ?
+        errors.length + " errors occurred during unsubscription:\n" + errors.map(function (err, i) { return i + 1 + ") " + err.toString(); }).join('\n  ') : '';
+    this.name = 'UnsubscriptionError';
+    this.errors = errors;
+    return this;
+}
+UnsubscriptionErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var UnsubscriptionError = UnsubscriptionErrorImpl;
 
 /** PURE_IMPORTS_START _util_isArray,_util_isObject,_util_isFunction,_util_tryCatch,_util_errorObject,_util_UnsubscriptionError PURE_IMPORTS_END */
 var Subscription = /*@__PURE__*/ (function () {
@@ -3105,6 +3136,7 @@ var Subscriber = /*@__PURE__*/ (function (_super) {
         _this.syncErrorThrown = false;
         _this.syncErrorThrowable = false;
         _this.isStopped = false;
+        _this._parentSubscription = null;
         switch (arguments.length) {
             case 0:
                 _this.destination = empty;
@@ -3119,7 +3151,7 @@ var Subscriber = /*@__PURE__*/ (function (_super) {
                         var trustedSubscriber = destinationOrNext[rxSubscriber]();
                         _this.syncErrorThrowable = trustedSubscriber.syncErrorThrowable;
                         _this.destination = trustedSubscriber;
-                        trustedSubscriber.add(_this);
+                        trustedSubscriber._addParentTeardownLogic(_this);
                     }
                     else {
                         _this.syncErrorThrowable = true;
@@ -3149,12 +3181,14 @@ var Subscriber = /*@__PURE__*/ (function (_super) {
         if (!this.isStopped) {
             this.isStopped = true;
             this._error(err);
+            this._unsubscribeParentSubscription();
         }
     };
     Subscriber.prototype.complete = function () {
         if (!this.isStopped) {
             this.isStopped = true;
             this._complete();
+            this._unsubscribeParentSubscription();
         }
     };
     Subscriber.prototype.unsubscribe = function () {
@@ -3175,6 +3209,16 @@ var Subscriber = /*@__PURE__*/ (function (_super) {
         this.destination.complete();
         this.unsubscribe();
     };
+    Subscriber.prototype._addParentTeardownLogic = function (parentTeardownLogic) {
+        if (parentTeardownLogic !== this) {
+            this._parentSubscription = this.add(parentTeardownLogic);
+        }
+    };
+    Subscriber.prototype._unsubscribeParentSubscription = function () {
+        if (this._parentSubscription !== null) {
+            this._parentSubscription.unsubscribe();
+        }
+    };
     Subscriber.prototype._unsubscribeAndRecycle = function () {
         var _a = this, _parent = _a._parent, _parents = _a._parents;
         this._parent = null;
@@ -3184,6 +3228,7 @@ var Subscriber = /*@__PURE__*/ (function (_super) {
         this.isStopped = false;
         this._parent = _parent;
         this._parents = _parents;
+        this._parentSubscription = null;
         return this;
     };
     return Subscriber;
@@ -3323,7 +3368,7 @@ var SafeSubscriber = /*@__PURE__*/ (function (_super) {
     return SafeSubscriber;
 }(Subscriber));
 function isTrustedSubscriber(obj) {
-    return obj instanceof Subscriber || ('syncErrorThrowable' in obj && obj[rxSubscriber]);
+    return obj instanceof Subscriber || ('_addParentTeardownLogic' in obj && obj[rxSubscriber]);
 }
 
 /** PURE_IMPORTS_START _Subscriber,_symbol_rxSubscriber,_Observer PURE_IMPORTS_END */
@@ -3389,7 +3434,7 @@ var Observable = /*@__PURE__*/ (function () {
             operator.call(sink, this.source);
         }
         else {
-            sink.add(this.source || (config.useDeprecatedSynchronousErrorHandling && !sink.syncErrorThrowable) ?
+            sink._addParentTeardownLogic(this.source || (config.useDeprecatedSynchronousErrorHandling && !sink.syncErrorThrowable) ?
                 this._subscribe(sink) :
                 this._trySubscribe(sink));
         }
@@ -3473,17 +3518,15 @@ function getPromiseCtor(promiseCtor) {
     return promiseCtor;
 }
 
-/** PURE_IMPORTS_START tslib PURE_IMPORTS_END */
-var ObjectUnsubscribedError = /*@__PURE__*/ (function (_super) {
-    __extends(ObjectUnsubscribedError, _super);
-    function ObjectUnsubscribedError() {
-        var _this = _super.call(this, 'object unsubscribed') || this;
-        _this.name = 'ObjectUnsubscribedError';
-        Object.setPrototypeOf(_this, ObjectUnsubscribedError.prototype);
-        return _this;
-    }
-    return ObjectUnsubscribedError;
-}(Error));
+/** PURE_IMPORTS_START  PURE_IMPORTS_END */
+function ObjectUnsubscribedErrorImpl() {
+    Error.call(this);
+    this.message = 'object unsubscribed';
+    this.name = 'ObjectUnsubscribedError';
+    return this;
+}
+ObjectUnsubscribedErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var ObjectUnsubscribedError = ObjectUnsubscribedErrorImpl;
 
 /** PURE_IMPORTS_START tslib,_Subscription PURE_IMPORTS_END */
 var SubjectSubscription = /*@__PURE__*/ (function (_super) {
@@ -4109,7 +4152,7 @@ var AsyncAction = /*@__PURE__*/ (function (_super) {
         if (delay !== null && this.delay === delay && this.pending === false) {
             return id;
         }
-        return clearInterval(id) && undefined || undefined;
+        clearInterval(id);
     };
     AsyncAction.prototype.execute = function (state, delay) {
         if (this.closed) {
@@ -4931,41 +4974,35 @@ function isObservable(obj) {
     return !!obj && (obj instanceof Observable || (typeof obj.lift === 'function' && typeof obj.subscribe === 'function'));
 }
 
-/** PURE_IMPORTS_START tslib PURE_IMPORTS_END */
-var ArgumentOutOfRangeError = /*@__PURE__*/ (function (_super) {
-    __extends(ArgumentOutOfRangeError, _super);
-    function ArgumentOutOfRangeError() {
-        var _this = _super.call(this, 'argument out of range') || this;
-        _this.name = 'ArgumentOutOfRangeError';
-        Object.setPrototypeOf(_this, ArgumentOutOfRangeError.prototype);
-        return _this;
-    }
-    return ArgumentOutOfRangeError;
-}(Error));
+/** PURE_IMPORTS_START  PURE_IMPORTS_END */
+function ArgumentOutOfRangeErrorImpl() {
+    Error.call(this);
+    this.message = 'argument out of range';
+    this.name = 'ArgumentOutOfRangeError';
+    return this;
+}
+ArgumentOutOfRangeErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var ArgumentOutOfRangeError = ArgumentOutOfRangeErrorImpl;
 
-/** PURE_IMPORTS_START tslib PURE_IMPORTS_END */
-var EmptyError = /*@__PURE__*/ (function (_super) {
-    __extends(EmptyError, _super);
-    function EmptyError() {
-        var _this = _super.call(this, 'no elements in sequence') || this;
-        _this.name = 'EmptyError';
-        Object.setPrototypeOf(_this, EmptyError.prototype);
-        return _this;
-    }
-    return EmptyError;
-}(Error));
+/** PURE_IMPORTS_START  PURE_IMPORTS_END */
+function EmptyErrorImpl() {
+    Error.call(this);
+    this.message = 'no elements in sequence';
+    this.name = 'EmptyError';
+    return this;
+}
+EmptyErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var EmptyError = EmptyErrorImpl;
 
-/** PURE_IMPORTS_START tslib PURE_IMPORTS_END */
-var TimeoutError = /*@__PURE__*/ (function (_super) {
-    __extends(TimeoutError, _super);
-    function TimeoutError() {
-        var _this = _super.call(this, 'Timeout has occurred') || this;
-        _this.name = 'TimeoutError';
-        Object.setPrototypeOf(_this, TimeoutError.prototype);
-        return _this;
-    }
-    return TimeoutError;
-}(Error));
+/** PURE_IMPORTS_START  PURE_IMPORTS_END */
+function TimeoutErrorImpl() {
+    Error.call(this);
+    this.message = 'Timeout has occurred';
+    this.name = 'TimeoutError';
+    return this;
+}
+TimeoutErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var TimeoutError = TimeoutErrorImpl;
 
 /** PURE_IMPORTS_START tslib,_Subscriber PURE_IMPORTS_END */
 function map(project, thisArg) {
@@ -5348,8 +5385,13 @@ var subscribeTo = function (result) {
 };
 
 /** PURE_IMPORTS_START _InnerSubscriber,_subscribeTo PURE_IMPORTS_END */
-function subscribeToResult(outerSubscriber, result, outerValue, outerIndex) {
-    var destination = new InnerSubscriber(outerSubscriber, outerValue, outerIndex);
+function subscribeToResult(outerSubscriber, result, outerValue, outerIndex, destination) {
+    if (destination === void 0) {
+        destination = new InnerSubscriber(outerSubscriber, outerValue, outerIndex);
+    }
+    if (destination.closed) {
+        return;
+    }
     return subscribeTo(result)(destination);
 }
 
@@ -5573,7 +5615,7 @@ function from(input, scheduler) {
     throw new TypeError((input !== null && typeof input || input) + ' is not observable');
 }
 
-/** PURE_IMPORTS_START tslib,_util_subscribeToResult,_OuterSubscriber,_map,_observable_from PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_util_subscribeToResult,_OuterSubscriber,_InnerSubscriber,_map,_observable_from PURE_IMPORTS_END */
 function mergeMap(project, resultSelector, concurrent) {
     if (concurrent === void 0) {
         concurrent = Number.POSITIVE_INFINITY;
@@ -5636,7 +5678,9 @@ var MergeMapSubscriber = /*@__PURE__*/ (function (_super) {
         this._innerSub(result, value, index);
     };
     MergeMapSubscriber.prototype._innerSub = function (ish, value, index) {
-        this.add(subscribeToResult(this, ish, value, index));
+        var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+        this.add(innerSubscriber);
+        subscribeToResult(this, ish, value, index, innerSubscriber);
     };
     MergeMapSubscriber.prototype._complete = function () {
         this.hasCompleted = true;
@@ -6701,7 +6745,12 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
         this.done = true;
         var _a = this, xhr = _a.xhr, request = _a.request, destination = _a.destination;
         var response = new AjaxResponse(e, xhr, request);
-        destination.next(response);
+        if (response.response === errorObject) {
+            destination.error(errorObject.e);
+        }
+        else {
+            destination.next(response);
+        }
     };
     AjaxSubscriber.prototype.send = function () {
         var _a = this, request = _a.request, _b = _a.request, user = _b.user, method = _b.method, url$$1 = _b.url, async = _b.async, password = _b.password, headers = _b.headers, body = _b.body;
@@ -6776,7 +6825,13 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
             if (progressSubscriber) {
                 progressSubscriber.error(e);
             }
-            subscriber.error(new AjaxTimeoutError(this, request));
+            var ajaxTimeoutError = new AjaxTimeoutError(this, request);
+            if (ajaxTimeoutError.response === errorObject) {
+                subscriber.error(errorObject.e);
+            }
+            else {
+                subscriber.error(ajaxTimeoutError);
+            }
         }
         xhr.ontimeout = xhrTimeout;
         xhrTimeout.request = request;
@@ -6803,7 +6858,13 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
                 if (progressSubscriber) {
                     progressSubscriber.error(e);
                 }
-                subscriber.error(new AjaxError('ajax error', this, request));
+                var ajaxError = new AjaxError('ajax error', this, request);
+                if (ajaxError.response === errorObject) {
+                    subscriber.error(errorObject.e);
+                }
+                else {
+                    subscriber.error(ajaxError);
+                }
             };
             xhr.onerror = xhrError_1;
             xhrError_1.request = request;
@@ -6836,7 +6897,13 @@ var AjaxSubscriber = /*@__PURE__*/ (function (_super) {
                     if (progressSubscriber) {
                         progressSubscriber.error(e);
                     }
-                    subscriber.error(new AjaxError('ajax error ' + status_1, this, request));
+                    var ajaxError = new AjaxError('ajax error ' + status_1, this, request);
+                    if (ajaxError.response === errorObject) {
+                        subscriber.error(errorObject.e);
+                    }
+                    else {
+                        subscriber.error(ajaxError);
+                    }
                 }
             }
         }
@@ -6865,31 +6932,31 @@ var AjaxResponse = /*@__PURE__*/ (function () {
     }
     return AjaxResponse;
 }());
-var AjaxError = /*@__PURE__*/ (function (_super) {
-    __extends(AjaxError, _super);
-    function AjaxError(message, xhr, request) {
-        var _this = _super.call(this, message) || this;
-        _this.name = 'AjaxError';
-        _this.message = message;
-        _this.xhr = xhr;
-        _this.request = request;
-        _this.status = xhr.status;
-        _this.responseType = xhr.responseType || request.responseType;
-        _this.response = parseXhrResponse(_this.responseType, xhr);
-        Object.setPrototypeOf(_this, AjaxError.prototype);
-        return _this;
+function AjaxErrorImpl(message, xhr, request) {
+    Error.call(this);
+    this.message = message;
+    this.name = 'AjaxError';
+    this.xhr = xhr;
+    this.request = request;
+    this.status = xhr.status;
+    this.responseType = xhr.responseType || request.responseType;
+    this.response = parseXhrResponse(this.responseType, xhr);
+    return this;
+}
+AjaxErrorImpl.prototype = /*@__PURE__*/ Object.create(Error.prototype);
+var AjaxError = AjaxErrorImpl;
+function parseJson(xhr) {
+    if ('response' in xhr) {
+        return xhr.responseType ? xhr.response : JSON.parse(xhr.response || xhr.responseText || 'null');
     }
-    return AjaxError;
-}(Error));
+    else {
+        return JSON.parse(xhr.responseText || 'null');
+    }
+}
 function parseXhrResponse(responseType, xhr) {
     switch (responseType) {
         case 'json':
-            if ('response' in xhr) {
-                return xhr.responseType ? xhr.response : JSON.parse(xhr.response || xhr.responseText || 'null');
-            }
-            else {
-                return JSON.parse(xhr.responseText || 'null');
-            }
+            return tryCatch(parseJson)(xhr);
         case 'xml':
             return xhr.responseXML;
         case 'text':
@@ -6897,16 +6964,12 @@ function parseXhrResponse(responseType, xhr) {
             return ('response' in xhr) ? xhr.response : xhr.responseText;
     }
 }
-var AjaxTimeoutError = /*@__PURE__*/ (function (_super) {
-    __extends(AjaxTimeoutError, _super);
-    function AjaxTimeoutError(xhr, request) {
-        var _this = _super.call(this, 'ajax timeout', xhr, request) || this;
-        _this.name = 'AjaxTimeoutError';
-        Object.setPrototypeOf(_this, AjaxTimeoutError.prototype);
-        return _this;
-    }
-    return AjaxTimeoutError;
-}(AjaxError));
+function AjaxTimeoutErrorImpl(xhr, request) {
+    AjaxError.call(this, 'ajax timeout', xhr, request);
+    this.name = 'AjaxTimeoutError';
+    return this;
+}
+var AjaxTimeoutError = AjaxTimeoutErrorImpl;
 
 /** PURE_IMPORTS_START _AjaxObservable PURE_IMPORTS_END */
 var ajax = AjaxObservable.create;
@@ -7094,9 +7157,8 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
         if (!this._socket) {
             this._connectSocket();
         }
-        var subscription = new Subscription();
-        subscription.add(this._output.subscribe(subscriber));
-        subscription.add(function () {
+        this._output.subscribe(subscriber);
+        subscriber.add(function () {
             var _socket = _this._socket;
             if (_this._output.observers.length === 0) {
                 if (_socket && _socket.readyState === 1) {
@@ -7105,7 +7167,7 @@ var WebSocketSubject = /*@__PURE__*/ (function (_super) {
                 _this._resetState();
             }
         });
-        return subscription;
+        return subscriber;
     };
     WebSocketSubject.prototype.unsubscribe = function () {
         var _a = this, source = _a.source, _socket = _a._socket;
@@ -7529,14 +7591,14 @@ _esm5.Observable.forkJoin = _esm5.forkJoin;
 
 unwrapExports(forkJoin$1);
 
-var from$1 = createCommonjsModule(function (module, exports) {
+var from_1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 
 _esm5.Observable.from = _esm5.from;
 
 });
 
-unwrapExports(from$1);
+unwrapExports(from_1);
 
 var fromEvent$1 = createCommonjsModule(function (module, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -8250,7 +8312,7 @@ var BufferWhenSubscriber = /*@__PURE__*/ (function (_super) {
     return BufferWhenSubscriber;
 }(OuterSubscriber));
 
-/** PURE_IMPORTS_START tslib,_OuterSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_OuterSubscriber,_InnerSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
 function catchError(selector) {
     return function catchErrorOperatorFunction(source) {
         var operator = new CatchOperator(selector);
@@ -8286,7 +8348,9 @@ var CatchSubscriber = /*@__PURE__*/ (function (_super) {
                 return;
             }
             this._unsubscribeAndRecycle();
-            this.add(subscribeToResult(this, result));
+            var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+            this.add(innerSubscriber);
+            subscribeToResult(this, result, undefined, undefined, innerSubscriber);
         }
     };
     return CatchSubscriber;
@@ -8666,6 +8730,7 @@ var DelayWhenSubscriber = /*@__PURE__*/ (function (_super) {
         _this.delayDurationSelector = delayDurationSelector;
         _this.completed = false;
         _this.delayNotifierSubscriptions = [];
+        _this.index = 0;
         return _this;
     }
     DelayWhenSubscriber.prototype.notifyNext = function (outerValue, innerValue, outerIndex, innerIndex, innerSub) {
@@ -8684,8 +8749,9 @@ var DelayWhenSubscriber = /*@__PURE__*/ (function (_super) {
         this.tryComplete();
     };
     DelayWhenSubscriber.prototype._next = function (value) {
+        var index = this.index++;
         try {
-            var delayNotifier = this.delayDurationSelector(value);
+            var delayNotifier = this.delayDurationSelector(value, index);
             if (delayNotifier) {
                 this.tryDelay(delayNotifier, value);
             }
@@ -9215,7 +9281,7 @@ var SwitchFirstSubscriber = /*@__PURE__*/ (function (_super) {
     return SwitchFirstSubscriber;
 }(OuterSubscriber));
 
-/** PURE_IMPORTS_START tslib,_OuterSubscriber,_util_subscribeToResult,_map,_observable_from PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_OuterSubscriber,_InnerSubscriber,_util_subscribeToResult,_map,_observable_from PURE_IMPORTS_END */
 function exhaustMap(project, resultSelector) {
     if (resultSelector) {
         return function (source) { return source.pipe(exhaustMap(function (a, i) { return from(project(a, i)).pipe(map(function (b, ii) { return resultSelector(a, b, i, ii); })); })); };
@@ -9249,16 +9315,22 @@ var ExhaustMapSubscriber = /*@__PURE__*/ (function (_super) {
         }
     };
     ExhaustMapSubscriber.prototype.tryNext = function (value) {
+        var result;
         var index = this.index++;
-        var destination = this.destination;
         try {
-            var result = this.project(value, index);
-            this.hasSubscription = true;
-            this.add(subscribeToResult(this, result, value, index));
+            result = this.project(value, index);
         }
         catch (err) {
-            destination.error(err);
+            this.destination.error(err);
+            return;
         }
+        this.hasSubscription = true;
+        this._innerSub(result, value, index);
+    };
+    ExhaustMapSubscriber.prototype._innerSub = function (result, value, index) {
+        var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+        this.add(innerSubscriber);
+        subscribeToResult(this, result, value, index, innerSubscriber);
     };
     ExhaustMapSubscriber.prototype._complete = function () {
         this.hasCompleted = true;
@@ -9432,6 +9504,7 @@ var FindValueSubscriber = /*@__PURE__*/ (function (_super) {
         var destination = this.destination;
         destination.next(value);
         destination.complete();
+        this.unsubscribe();
     };
     FindValueSubscriber.prototype._next = function (value) {
         var _a = this, predicate = _a.predicate, thisArg = _a.thisArg;
@@ -9690,7 +9763,7 @@ function mergeMapTo(innerObservable, resultSelector, concurrent) {
     return mergeMap(function () { return innerObservable; }, concurrent);
 }
 
-/** PURE_IMPORTS_START tslib,_util_tryCatch,_util_errorObject,_util_subscribeToResult,_OuterSubscriber PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_util_tryCatch,_util_errorObject,_util_subscribeToResult,_OuterSubscriber,_InnerSubscriber PURE_IMPORTS_END */
 function mergeScan(accumulator, seed, concurrent) {
     if (concurrent === void 0) {
         concurrent = Number.POSITIVE_INFINITY;
@@ -9740,7 +9813,9 @@ var MergeScanSubscriber = /*@__PURE__*/ (function (_super) {
         }
     };
     MergeScanSubscriber.prototype._innerSub = function (ish, value, index) {
-        this.add(subscribeToResult(this, ish, value, index));
+        var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+        this.add(innerSubscriber);
+        subscribeToResult(this, ish, value, index, innerSubscriber);
     };
     MergeScanSubscriber.prototype._complete = function () {
         this.hasCompleted = true;
@@ -9818,7 +9893,7 @@ var MulticastOperator = /*@__PURE__*/ (function () {
     return MulticastOperator;
 }());
 
-/** PURE_IMPORTS_START tslib,_observable_from,_util_isArray,_OuterSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_observable_from,_util_isArray,_OuterSubscriber,_InnerSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
 function onErrorResumeNext$3() {
     var nextSources = [];
     for (var _i = 0; _i < arguments.length; _i++) {
@@ -9861,7 +9936,9 @@ var OnErrorResumeNextSubscriber = /*@__PURE__*/ (function (_super) {
     OnErrorResumeNextSubscriber.prototype.subscribeToNextSource = function () {
         var next = this.nextSources.shift();
         if (next) {
-            this.add(subscribeToResult(this, next));
+            var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+            this.add(innerSubscriber);
+            subscribeToResult(this, next, undefined, undefined, innerSubscriber);
         }
         else {
             this.destination.complete();
@@ -10409,6 +10486,12 @@ function share() {
 
 /** PURE_IMPORTS_START _ReplaySubject PURE_IMPORTS_END */
 function shareReplay(bufferSize, windowTime, scheduler) {
+    if (bufferSize === void 0) {
+        bufferSize = Number.POSITIVE_INFINITY;
+    }
+    if (windowTime === void 0) {
+        windowTime = Number.MAX_VALUE;
+    }
     return function (source) { return source.lift(shareReplayOperator(bufferSize, windowTime, scheduler)); };
 }
 function shareReplayOperator(bufferSize, windowTime, scheduler) {
@@ -10586,7 +10669,7 @@ var SkipLastSubscriber = /*@__PURE__*/ (function (_super) {
     return SkipLastSubscriber;
 }(Subscriber));
 
-/** PURE_IMPORTS_START tslib,_OuterSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_OuterSubscriber,_InnerSubscriber,_util_subscribeToResult PURE_IMPORTS_END */
 function skipUntil(notifier) {
     return function (source) { return source.lift(new SkipUntilOperator(notifier)); };
 }
@@ -10604,7 +10687,10 @@ var SkipUntilSubscriber = /*@__PURE__*/ (function (_super) {
     function SkipUntilSubscriber(destination, notifier) {
         var _this = _super.call(this, destination) || this;
         _this.hasValue = false;
-        _this.add(_this.innerSubscription = subscribeToResult(_this, notifier));
+        var innerSubscriber = new InnerSubscriber(_this, undefined, undefined);
+        _this.add(innerSubscriber);
+        _this.innerSubscription = innerSubscriber;
+        subscribeToResult(_this, notifier, undefined, undefined, innerSubscriber);
         return _this;
     }
     SkipUntilSubscriber.prototype._next = function (value) {
@@ -10713,7 +10799,7 @@ var SubscribeOnOperator = /*@__PURE__*/ (function () {
     return SubscribeOnOperator;
 }());
 
-/** PURE_IMPORTS_START tslib,_OuterSubscriber,_util_subscribeToResult,_map,_observable_from PURE_IMPORTS_END */
+/** PURE_IMPORTS_START tslib,_OuterSubscriber,_InnerSubscriber,_util_subscribeToResult,_map,_observable_from PURE_IMPORTS_END */
 function switchMap(project, resultSelector) {
     if (typeof resultSelector === 'function') {
         return function (source) { return source.pipe(switchMap(function (a, i) { return from(project(a, i)).pipe(map(function (b, ii) { return resultSelector(a, b, i, ii); })); })); };
@@ -10754,7 +10840,9 @@ var SwitchMapSubscriber = /*@__PURE__*/ (function (_super) {
         if (innerSubscription) {
             innerSubscription.unsubscribe();
         }
-        this.add(this.innerSubscription = subscribeToResult(this, result, value, index));
+        var innerSubscriber = new InnerSubscriber(this, undefined, undefined);
+        this.add(innerSubscriber);
+        this.innerSubscription = subscribeToResult(this, result, value, index, innerSubscriber);
     };
     SwitchMapSubscriber.prototype._complete = function () {
         var innerSubscription = this.innerSubscription;
@@ -10799,7 +10887,7 @@ var TakeUntilOperator = /*@__PURE__*/ (function () {
     TakeUntilOperator.prototype.call = function (subscriber, source) {
         var takeUntilSubscriber = new TakeUntilSubscriber(subscriber);
         var notifierSubscription = subscribeToResult(takeUntilSubscriber, this.notifier);
-        if (notifierSubscription && !notifierSubscription.closed) {
+        if (notifierSubscription && !takeUntilSubscriber.seenValue) {
             takeUntilSubscriber.add(notifierSubscription);
             return source.subscribe(takeUntilSubscriber);
         }
@@ -10810,9 +10898,12 @@ var TakeUntilOperator = /*@__PURE__*/ (function () {
 var TakeUntilSubscriber = /*@__PURE__*/ (function (_super) {
     __extends(TakeUntilSubscriber, _super);
     function TakeUntilSubscriber(destination) {
-        return _super.call(this, destination) || this;
+        var _this = _super.call(this, destination) || this;
+        _this.seenValue = false;
+        return _this;
     }
     TakeUntilSubscriber.prototype.notifyNext = function (outerValue, innerValue, outerIndex, innerIndex, innerSub) {
+        this.seenValue = true;
         this.complete();
     };
     TakeUntilSubscriber.prototype.notifyComplete = function () {
@@ -13207,6 +13298,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @method distinctUntilKeyChanged
  * @owner Observable
  */
+// tslint:disable-next-line:max-line-length
 function distinctUntilKeyChanged(key, compare) {
     return operators.distinctUntilKeyChanged(key, compare)(this);
 }
@@ -17623,11 +17715,12 @@ var ColdObservable = /*@__PURE__*/ (function (_super) {
         var _this = _super.call(this, function (subscriber) {
             var observable = this;
             var index = observable.logSubscribedFrame();
-            subscriber.add(new Subscription(function () {
+            var subscription = new Subscription();
+            subscription.add(new Subscription(function () {
                 observable.logUnsubscribedFrame(index);
             }));
             observable.scheduleMessages(subscriber);
-            return subscriber;
+            return subscription;
         }) || this;
         _this.messages = messages;
         _this.subscriptions = [];
@@ -17661,10 +17754,12 @@ var HotObservable = /*@__PURE__*/ (function (_super) {
     HotObservable.prototype._subscribe = function (subscriber) {
         var subject = this;
         var index = subject.logSubscribedFrame();
-        subscriber.add(new Subscription(function () {
+        var subscription = new Subscription();
+        subscription.add(new Subscription(function () {
             subject.logUnsubscribedFrame(index);
         }));
-        return _super.prototype._subscribe.call(this, subscriber);
+        subscription.add(_super.prototype._subscribe.call(this, subscriber));
+        return subscription;
     };
     HotObservable.prototype.setup = function () {
         var subject = this;
@@ -17733,15 +17828,17 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
         });
         return messages;
     };
-    TestScheduler.prototype.expectObservable = function (observable, unsubscriptionMarbles) {
+    TestScheduler.prototype.expectObservable = function (observable, subscriptionMarbles) {
         var _this = this;
-        if (unsubscriptionMarbles === void 0) {
-            unsubscriptionMarbles = null;
+        if (subscriptionMarbles === void 0) {
+            subscriptionMarbles = null;
         }
         var actual = [];
         var flushTest = { actual: actual, ready: false };
-        var unsubscriptionFrame = TestScheduler
-            .parseMarblesAsSubscriptions(unsubscriptionMarbles, this.runMode).unsubscribedFrame;
+        var subscriptionParsed = TestScheduler.parseMarblesAsSubscriptions(subscriptionMarbles, this.runMode);
+        var subscriptionFrame = subscriptionParsed.subscribedFrame === Number.POSITIVE_INFINITY ?
+            0 : subscriptionParsed.subscribedFrame;
+        var unsubscriptionFrame = subscriptionParsed.unsubscribedFrame;
         var subscription;
         this.schedule(function () {
             subscription = observable.subscribe(function (x) {
@@ -17755,7 +17852,7 @@ var TestScheduler = /*@__PURE__*/ (function (_super) {
             }, function () {
                 actual.push({ frame: _this.frame, notification: Notification.createComplete() });
             });
-        }, 0);
+        }, subscriptionFrame);
         if (unsubscriptionFrame !== Number.POSITIVE_INFINITY) {
             this.schedule(function () { return subscription.unsubscribe(); }, unsubscriptionFrame);
         }
@@ -18216,10 +18313,9 @@ exports.operators = operators;
  * @typedef {Object} Rx.Scheduler
  * @property {Scheduler} queue Schedules on a queue in the current event frame
  * (trampoline scheduler). Use this for iteration operations.
- * @property {Scheduler} asap Schedules on the micro task queue, which uses the
- * fastest transport mechanism available, either Node.js' `process.nextTick()`
- * or Web Worker MessageChannel or setTimeout or others. Use this for
- * asynchronous conversions.
+ * @property {Scheduler} asap Schedules on the micro task queue, which is the same
+ * queue used for promises. Basically after the current job, but before the next
+ * job. Use this for asynchronous conversions.
  * @property {Scheduler} async Schedules work with `setInterval`. Use this for
  * time-based operations.
  * @property {Scheduler} animationFrame Schedules work with `requestAnimationFrame`.
@@ -18300,73 +18396,22 @@ function get$(url$$1, data) {
     method: 'get',
     url: url$$1,
     params: data
+  }).catch(function (e) {
+    throw Error(e);
   })).catch(function (res) {
     console.error(res);
     return Rx$3.Observable.empty();
   });
 }
 
-function xget$(url$$1, data) {
-  return Rx$3.Observable.fromPromise(fetch({
-    method: 'get',
-    url: url$$1,
-    withCredentials: true,
-    params: data
-  })).catch(function (res) {
-    console.error(res);
-    return Rx$3.Observable.empty();
+// import Rx from 'rxjs/Rx'
+function pingIphone() {
+  // get$('https://www.apple.com/cn/shop/goto/buy_iphone/iphone_x')
+  get$('www.baidu.com').map(function (r) {
+    return console.log(r);
+  }).catch(function (e) {
+    return console.log('error');
   });
 }
 
-function post(url$$1, data, options) {
-  return Rx$3.Observable.fromPromise(fetch({
-    method: 'post',
-    url: url$$1,
-    data: data
-  })).catch(function (res) {
-    console.error(res);
-    return Rx$3.Observable.empty();
-  });
-}
-
-function put(url$$1, data, options) {
-  return Rx$3.Observable.fromPromise(fetch({
-    method: 'put',
-    url: url$$1,
-    data: data
-  })).catch(function (res) {
-    console.error(res);
-    return Rx$3.Observable.empty();
-  });
-}
-
-function _delete(url$$1, options) {
-  return Rx$3.Observable.fromPromise(fetch({
-    method: 'delete',
-    url: url$$1
-  })).catch(function (res) {
-    console.error(res);
-    return Rx$3.Observable.empty();
-  });
-}
-
-var http$1 = {
-  get$: get$,
-  xget$: xget$,
-  post: post,
-  put: put,
-  _delete: _delete
-};
-
-var cheerio = require('cheerio');
-
-var URI = 'http://chuxin.360jlb.cn/user?id=3618365';
-
-var result$ = http$1.get$(URI);
-
-result$.subscribe(function (data) {
-  // console.log(`${data}`)
-  var _ = cheerio.load(data);
-  var feedlist = _('#feedlist').innerHtml();
-  console.log(feedlist, 'feedlist');
-});
+pingIphone();

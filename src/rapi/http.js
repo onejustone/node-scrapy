@@ -7,7 +7,7 @@ export function get$ (url, data) {
       method: 'get',
       url: url,
       params: data
-    })
+    }).catch(e => { throw Error(e) })
   )
   .catch(res => {
     console.error(res)

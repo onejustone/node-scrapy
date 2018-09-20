@@ -6,7 +6,6 @@
   "author": "chenrong <chenrong@lingxi360.com>",
   "license": "MIT",
   "scripts": {
-    "dev:start": "supervisor ./dist/build.js",
     "build": "rollup -c build/rollup.config.js",
     "thal": "src/example/thal/index.js",
     "start:sht": "pm2 start src/example/sht/index.js",

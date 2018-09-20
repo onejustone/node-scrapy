@@ -10,7 +10,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import babel from 'rollup-plugin-babel'
 
 export default {
-  input: 'src/index.js',
+  input: 'src/example/ping_apple.js',
   output: {
     file: 'dist/build.js',
     format: 'cjs'
