@@ -12,7 +12,8 @@ const userList = [
   '3637725',
   '3621264',
   '3659763',
-  '3686779'
+  '3686779',
+  '3631103'
 ]
 
 function generateTargetUrls() {

@@ -13,29 +13,32 @@ async function getUserInfo(page) {
 
   try {
     const userInfo = await page.evaluate((sNickname, sFeedList, sFeedItem) => {
-      const nickname = document.querySelector(sNickname)
-        .innerText
-        .split(':')[1]
+        const nickname = document.querySelector(sNickname)
+          .innerText
+          .split(':')[1]
 
-      const feedList = document.querySelector(sFeedList)
-      if (!feedList) return []
+        const feedList = document.querySelector(sFeedList)
+        if (!feedList) return []
 
-      const items = feedList.querySelectorAll(sFeedItem)
-      if (!items) return []
+        const items = feedList.querySelectorAll(sFeedItem)
+        if (!items) return []
 
-      const feedItems = Array.from(items).map(item => {
-        const activityUrl = item.querySelector('.content > a').href || ''
-        const activityName = item.querySelector('.content > a').innerText || ''
-        const activityTime = item.querySelector('.time').innerText || ''
+        const feedItems = Array.from(items).map(item => {
+          const activityUrl = item.querySelector('.content > a').href || ''
+          const activityName = item.querySelector('.content > a').innerText || ''
+          const activityTime = item.querySelector('.time').innerText || ''
 
+          return {
+            activityName,
+            activityTime,
+            activityUrl
+          }
+        })
         return {
-          activityName,
-          activityTime,
-          activityUrl
+          nickname,
+          feedItems
         }
-      })
-      return { nickname, feedItems }
-    },
+      },
       USER_NICKNAME_SELECTOR,
       FEED_LIST_SELECTOR,
       FEED_ITEM_SELECTOR
@@ -50,10 +53,15 @@ async function getUserInfo(page) {
 
 // 创建 browser 单例
 let browserInstance = null
-async function getSingleBrowser({ headless = true } = {}) {
+async function getSingleBrowser({
+  headless = true
+} = {}) {
   if (browserInstance) return browserInstance
   logger.info('First lanuch singleton browser...')
-  browserInstance = await puppeteer.launch({ headless , args: ['--no-sandbox', '--disable-setuid-sandbox']})
+  browserInstance = await puppeteer.launch({
+    headless,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  })
   logger.info('Lanuch singleton browser successfully!')
   return browserInstance
 }
@@ -66,7 +74,10 @@ async function getSinglePage(browser) {
   logger.info('Initing singleton newPage...')
   pageInstance = await browser.newPage()
   logger.info('Singleton page inited successfully!')
-  await pageInstance.setViewport({ width: 800, height: 800 })
+  await pageInstance.setViewport({
+    width: 800,
+    height: 800
+  })
   return pageInstance
 }
 

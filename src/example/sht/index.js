@@ -75,5 +75,6 @@ function launchCreawel() {
   batchCreaweler(targetList)
 }
 
+launchCreawel()
 schedule(launchCreawel)
 
